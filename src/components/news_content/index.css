@@ -1,0 +1,41 @@
+.news_banner1 {
+    position: relative;
+    background-image: url('https://png.pngtree.com/back_origin_pic/00/02/11/49e36c2a7f217c2296705cc8190e2ace.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 250px; /* 调整为您需要的高度 */
+    display: flex;
+    justify-content: center; /* 文字水平居中 */
+    align-items: center; /* 文字垂直居中 */
+
+}
+
+.news_banner1::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 调整遮罩的透明度 */
+}
+
+.news_banner1 p {
+    margin: 0%;
+    position: absolute;
+    color: white; /* 文字颜色 */
+    font-size: 3rem; /* 文字大小 */
+    font-weight: bold;
+}
+
+.content{
+    margin: 1rem 8rem;
+}
+.news_cards_bar{
+    margin: 1.5rem 0%;
+    display: flex;
+    justify-content: space-between ;
+}
+.switch{
+    padding-top: 0%;
+}

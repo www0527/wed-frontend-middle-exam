@@ -1,0 +1,54 @@
+body {
+    margin: 0px;
+}
+
+.header {
+    top:0;
+    position: sticky;
+    display: flex; /* 使用 Flex 布局 */
+    justify-content: space-between; /* 水平方向两侧对齐 */
+    align-items: center; /* 垂直方向居中对齐 */
+    padding: 5px 20px; /* 设置内边距 */
+    height: 70px;
+    background-color:#ffffff;
+    z-index: 999;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}  
+
+.header-left {
+    flex: 1; /* 左侧占据剩余空间 */
+}
+
+.header-right {
+    display: flex; /* 使用 Flex 布局 */
+    font-weight: bolder;
+}
+
+.l-button {
+    display: flex; /* 使用 Flex 布局 */
+    align-items: center; /* 垂直方向居中对齐 */
+    text-decoration: none; /* 移除链接的下划线 */
+    filter: brightness(100%); /* 默认亮度 */
+    transition: filter 0.3s ease; /* 添加过渡效果 */
+    img{
+        cursor: pointer;
+        height: 50px;
+    }
+    span{
+        padding-left: 1em;
+        cursor: pointer;
+        font-size: 1.2em;
+    }
+    :hover{
+        filter: brightness(140%); /* 悬停时降低亮度 */
+    }
+}
+
+.r-button > * {
+    display: flex; /* 使用 Flex 布局 */
+    color:black
+}
+
+.bold-button {
+    font-weight: bold;
+}

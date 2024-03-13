@@ -1,0 +1,36 @@
+.footer {
+    color: white;
+    background-color: #123262;
+    top:0;
+    position: sticky;
+    display: flex;
+    justify-content:space-between;
+    padding: 20px 90px 10px;
+    z-index: 999;
+    font-weight:bold;
+    font-size: 1.15rem;
+}  
+
+#title{
+    color: #ff9832;
+    font-size: 30px;
+}
+
+.icon{
+    display: flex;
+    align-items: center;
+}
+.context{
+    width: 100%;
+    font-size: 15px;
+    padding: 0px 30px 10px;
+    margin: 0px;
+    text-align: center;
+    background-color: #123262;
+    color: white;
+    font-weight: bold;
+}
+
+iframe {
+    border: 0;
+}

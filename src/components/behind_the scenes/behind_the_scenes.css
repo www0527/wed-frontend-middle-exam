@@ -1,0 +1,23 @@
+.behind_the_scenes_title_text {
+    text-align: center; /* 水平置中 */
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.behind_the_scenes_title_text span:first-child {
+    font-size: 1.5em; /* 讓 "幕" 的字體更大 */
+    color: #d6752b; /* 設定文字顏色為藍色 */
+}
+
+.container{
+    padding: 5rem 20px;
+}
+
+.container_body {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 創建四個等寬的列 */
+    gap: 50px; /* 設置組件之間的間隙為 50px */
+    justify-items: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    padding: 50px; /* 容器的內距 */
+}

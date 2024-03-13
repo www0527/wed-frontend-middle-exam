@@ -1,0 +1,77 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+
+
+/* 展開元件 */
+.About_Society{
+    background-color: #f6efe8;
+}
+
+/* 元件容器 */
+.about_content{
+    padding: 0rem 5rem;
+}
+
+/* 頁面名稱 */
+.page_name{
+    font-size: 3rem;
+    color: black;
+    font-weight: bolder;
+    border-bottom: 10px solid #1b315f6b;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 0rem;
+}
+
+/* 標題 */
+.line_title{
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-left: 5px solid #1b315f;
+    margin: 1rem 0rem;
+    padding: 0px 1rem;
+}
+
+/* line_left 與 right */
+.line_left,
+.line_right{
+    width: 47%;
+}
+.line_left{
+    margin-right: 5%;
+}
+
+/* line的排版 */
+.about_line {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0rem;
+}
+
+.about_info{
+    font-size: 0.9rem;
+    padding-top: 0.5rem;
+    a {
+        text-decoration: none; /* 取消下划线 */
+        color: #2240ba; /* 设置链接颜色 */
+        :hover{
+            color: #ff4545;
+        }
+        div{
+            display: flex;
+            align-items: center;
+        }
+    }
+}

@@ -1,0 +1,25 @@
+/* ScrollToTopButton.css */
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: #007bff; /* 按钮背景颜色 */
+    color: #fff; /* 按钮文字颜色 */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    opacity: 0; /* 初始状态隐藏 */
+    transition: opacity 0.3s ease-in-out;
+    z-index: 999;
+}
+
+.scroll-to-top.show {
+    opacity: 1; /* 滚动到一定高度后显示 */
+}
+
+/* 可根据需要添加其他样式，如悬浮效果、阴影等 */

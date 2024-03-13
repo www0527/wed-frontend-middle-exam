@@ -1,0 +1,52 @@
+.news_banner {
+    position: relative;
+    background-image: url('https://cocoiro.me/wp-content/uploads/2019/07/iStock-515315278.jpg');
+    background-size: cover;
+    background-position:center;
+    height: 250px; /* 调整为您需要的高度 */
+    display: flex;
+    justify-content: center; /* 文字水平居中 */
+    align-items: center; /* 文字垂直居中 */
+
+}
+
+.news_banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 调整遮罩的透明度 */
+}
+
+.news_banner p {
+    margin: 0%;
+    position: absolute;
+    color: white; /* 文字颜色 */
+    font-size: 3rem; /* 文字大小 */
+    font-weight: bold;
+}
+
+.search-container,
+.seminar_pepper {
+    margin: 1rem 8rem;
+    display: flex;
+    align-items: center;
+}
+.seminar_pepper{
+    display: flex;
+    align-items: flex-start;
+}
+
+.pie_chart_container {
+    align-self: center; /* 將圓餅圖置中 */
+}
+
+.seminar_table {
+    flex: 1; /* 将 seminar_table 的宽度设置为剩余空间的一半 */
+}
+
+.seminar_pei {
+    flex: 1; /* 将 seminar_pei 的宽度设置为剩余空间的一半 */
+} 

@@ -1,0 +1,37 @@
+.departmentsOfEachSchool_content{
+    margin: 1rem 13rem;
+}
+
+.area_button_content{
+    display: flex;
+    align-items: center; /* 垂直居中 */
+    .area_button{
+        width: 20%;
+        margin: 0px 2.5%;
+        font-size: 1.5rem;
+        font-weight: bolder;
+        background-color: #dc7322;
+    }
+    .area_button:hover{
+        background-color: #dc7322;
+    }
+}
+
+.switch_page_button{
+    display: flex;
+    justify-content: center; /* 垂直居中 */
+    padding-top: 50px;
+    button{
+        background-color: rgb(0, 0, 0, 0);
+        font-size: 1.1rem;
+        width: 1.7rem;
+        height: 1.7rem;
+        border-radius: 100%;
+        border: unset;
+        margin: 5px;
+        cursor: pointer;
+    }
+    button:hover{
+        background-color: #b3b3b3;
+    }
+}

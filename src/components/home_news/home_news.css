@@ -1,0 +1,102 @@
+.HomeNewsBanner{
+    padding: 1rem;
+    padding-left: 0px;
+    border-bottom: rgb(139, 139, 139) solid 2px;
+    p{
+        margin: 0%;
+    }
+    .banner{
+        padding: 10px 0px 20px;
+    }
+    .button_group{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .little_button{
+        all:unset;
+        text-align: center;
+        padding: 0.1rem 0.2rem;
+        box-shadow: none; /*取消陰影*/
+        outline: none; /* 取消聚焦時的輪廓 */
+        color: #d6752b;
+        font-size: 0.9rem;
+        font-weight: bold;
+        border: #d6752b 2px solid;
+        border-radius: 5px;
+        background-color: rgb(255, 255, 255, 0);
+        transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+    }
+    .little_button:hover{
+        cursor: pointer;
+        color: white;
+        background-color: #d6752b;
+    }
+    .learn_more{
+        cursor: pointer;
+        color: #0058c5;
+        font-weight: bolder;
+        font-size: 12px;
+        text-align: right;
+    }
+}
+.time{
+    color: #858585;
+    font-weight: bolder;
+    font-size: 0.9rem;
+    p{
+        margin: 0%;
+    }
+}
+
+.banner{
+    font-size: 1.5rem;
+    padding: 1rem 0px;
+}
+
+.home_news_container{
+    padding-left: 10%;
+    padding-right: 10%;
+    position: relative;
+}
+.home_news_container::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("../../images/科技.jpg");
+    opacity: 0.2; 
+    z-index: -1;
+    object-fit: cover;
+}
+.home_news_title_text{
+    text-align: left; 
+    font-size: 2rem;
+    font-weight: bold;
+    padding-bottom: 2rem;
+}
+
+.home_news_title_text span:first-child {
+    font-size: 1.5em; /* 讓 "幕" 的字體更大 */
+    color: #d6752b; /* 設定文字顏色為藍色 */
+}
+.home_news_content{
+    display: flex;
+    justify-content: space-around; /* 水平均分 */
+    align-items: center; /* 垂直置中 */
+}
+
+.home_news_cards {
+    display: flex;
+    justify-content: space-around; /* 水平均分 */
+    align-items: center; /* 垂直置中 */
+    width: 50%;
+    height: 100%; /* 確保父容器有足夠的高度 */
+}
+
+.home_news_banner{
+    width: 45%;
+}
