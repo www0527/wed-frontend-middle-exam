@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/wed-frontend-middle-exam/static/css/main.f6d72dea.css",
-    "main.js": "/wed-frontend-middle-exam/static/js/main.61d78ce8.js",
+    "main.js": "/wed-frontend-middle-exam/static/js/main.f8435103.js",
     "static/media/科技.jpg": "/wed-frontend-middle-exam/static/media/科技.f13ad3903df0828a4f92.jpg",
     "static/media/banner2.png": "/wed-frontend-middle-exam/static/media/banner2.8c18f0d584ccd9864f1d.png",
     "static/media/banner1.jpg": "/wed-frontend-middle-exam/static/media/banner1.3691b346c7a6c0a19cfa.jpg",
     "index.html": "/wed-frontend-middle-exam/index.html",
     "main.f6d72dea.css.map": "/wed-frontend-middle-exam/static/css/main.f6d72dea.css.map",
-    "main.61d78ce8.js.map": "/wed-frontend-middle-exam/static/js/main.61d78ce8.js.map"
+    "main.f8435103.js.map": "/wed-frontend-middle-exam/static/js/main.f8435103.js.map"
   },
   "entrypoints": [
     "static/css/main.f6d72dea.css",
-    "static/js/main.61d78ce8.js"
+    "static/js/main.f8435103.js"
   ]
 }
