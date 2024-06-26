@@ -14,11 +14,12 @@ import { News,News2,News3,News4,News5 } from './pages/news';
 import { SeminarPepper } from './pages/seminar_pepper/seminar_pepper';
 import { Pepper } from './pages/pepper';
 import LoginPage from './pages/login';
+import React from 'react';
 
 
 const routes: RouteObject[] =[
     {
-        path: "/",
+        path: "/wed-frontend-middle-exam",
         element: <Home />,
         children:[]
     },

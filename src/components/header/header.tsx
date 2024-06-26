@@ -28,7 +28,7 @@ export default function Header(){
     <div className="header">
         {/* 左側 header */}
         <div className="header-left">
-            <Link className="l-button" onClick={()=>{go("/")}} underline='none'>
+            <Link className="l-button" onClick={()=>{go("/wed-frontend-middle-exam/")}} underline='none'>
                 <img src="https://www.csim.org.tw/sites/default/files/CSIM.gif" />
                 <span style={{fontWeight:"bolder"}}>中華民國資訊管理協會</span>
                 </Link>
@@ -36,7 +36,7 @@ export default function Header(){
         {/* 右側 header */}
         <div className="header-right">
             <ButtonGroup className="r-button" variant="text" color="primary" aria-label="Basic button group" >
-                <Button onClick={()=>{go("/")}} style={{ fontWeight:'bolder', fontSize:'1.2em', color: 'black' }}>首頁</Button>
+                <Button onClick={()=>{go("/wed-frontend-middle-exam/")}} style={{ fontWeight:'bolder', fontSize:'1.2em', color: 'black' }}>首頁</Button>
                 <Button
                 onClick={()=>{go("/about")}}
                 style={{ fontWeight:'bolder', fontSize:'1.2em', color: 'black' }}
