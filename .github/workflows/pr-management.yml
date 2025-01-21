@@ -222,7 +222,7 @@ jobs:
             const qcReviewer = 'www0527'; // 替換為實際的 QC 人員 GitHub 用戶名
             
             // 提取 issue 編號
-            const issueMatch = context.payload.pull_request.title.match(/\(qc\)issue\/(\d+)/);
+            const issueMatch = context.payload.pull_request.title.match(/\(qc\)issue\/(\d+)/i);
             if (issueMatch) {
               const issueNumber = issueMatch[1];
               await github.rest.issues.createComment({
