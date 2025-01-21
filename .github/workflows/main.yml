@@ -2,64 +2,84 @@ name: Sync Issues
 
 on:
   issues:
-    types: [opened, edited, assigned, unassigned, closed, reopened]
+    types: [opened, edited, closed, reopened, assigned, unassigned]
+  issue_comment:
+    types: [created, edited, deleted]
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
-  sync_issues:
+  sync-issues:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Debug Token
+        run: |
+          if [ -n "${{ secrets.SYNC_TOKEN }}" ]; then
+            echo "SYNC_TOKEN is set"
+          else
+            echo "SYNC_TOKEN is not set"
+          fi
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: Run script
+      - name: Verify Access
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.SYNC_TOKEN }}
           script: |
-            const targetRepos = [
-              {
-                owner: 'owner1',
-                repo: 'repo1',
-                syncActions: ['opened', 'edited', 'assigned', 'unassigned', 'closed', 'reopened'],
-                excludedLabels: ['exclude'],
-                prependTitle: '[Sync]'
-              },
-              {
-                owner: 'owner2',
-                repo: 'repo2',
-                syncActions: ['opened', 'edited', 'assigned', 'unassigned', 'closed', 'reopened'],
-                excludedLabels: ['exclude'],
-                prependTitle: '[Sync]'
-              }
-            ];
+            try {
+              await github.rest.repos.get({
+                owner: context.repo.owner,
+                repo: 'Redux-learning'
+              });
+              console.log('Successfully accessed target repository');
+            } catch (error) {
+              console.error('Repository access test failed:', error);
+              throw error;
+            }
 
+      - name: Sync issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SYNC_TOKEN }}
+          script: |
             const sourceIssue = context.payload.issue;
 
-            const bodyTemplate = (url, body, repoName, assignee) => `
-              Developer: ${assignee ? `@${assignee}` : ''}
+            const targetRepos = [
+              {
+                owner: 'www0527',
+                repo: 'Redux-learning',
+                syncActions: ['opened', 'edited', 'closed', 'reopened', 'assigned', 'unassigned'],
+                excludedLabels: ['P0', 'Acceptance'],
+                prependTitle: false
+              }
+            ];
+            
+            // 構建 issue 內容
+            const title = sourceIssue.title;
+            const body = `
+            Original Issue: ${sourceIssue.html_url}
+            Developer: ${sourceIssue.assignee ? `@${sourceIssue.assignee.login}` : ''}
 
-              ---
+            ---
 
-              ${body || ''}
+            ${sourceIssue.body || ''}
 
-              ---
+            ---
 
-              *Synced from ${context.repo.owner}/${context.repo.repo} to ${repoName}*`;
-
+            *Synced from ${context.repo.owner}/${context.repo.repo} to ${context.repo.owner}/Redux-learning*`;
+            
             try {
-              for (const { owner, repo, syncActions, excludedLabels = [], prependTitle } of targetRepos) {
+                for (const { owner, repo, syncActions, excludedLabels = [], prependTitle } of targetRepos) {
                 const repoName = `${owner}/${repo}`;
-
+            
                 // 檢查動作是否允許
                 if (!syncActions.includes(context.payload.action)) {
                   console.log(`Action "${context.payload.action}" not allowed for ${repoName}`);
                   continue;
                 }
-
+            
                 // 檢查是否有排除的標籤
                 const hasExcludedLabel = excludedLabels.length > 0 &&
                   sourceIssue.labels.some(label => excludedLabels.includes(label.name));
@@ -67,50 +87,59 @@ jobs:
                   console.log(`Skipping sync for issue with excluded label in ${repoName}`);
                   continue;
                 }
-
+            
                 // 獲取當前指派的開發者資訊
                 const assignee = sourceIssue.assignees.length > 0
                   ? sourceIssue.assignees.map(user => user.login).join(', ')
                   : null;
-
+            
                 // 構建標題（加上前綴）
                 const title = prependTitle
                   ? `${prependTitle} ${sourceIssue.title}` // 在標題前加前綴
                   : sourceIssue.title;
-
-                // 動作為新增 Issue 時
+            
+                // 根據不同的動作執行不同的操作
                 if (context.payload.action === 'opened') {
-                  await github.rest.issues.create({
-                    owner,
-                    repo,
-                    title: title,
-                    body: bodyTemplate(sourceIssue.html_url, sourceIssue.body, repoName, assignee),
-                    labels: sourceIssue.labels.map(label => label.name)
-                  });
-                  console.log(`Successfully created sync issue in ${repoName}`);
-                }
-
-                // 動作為編輯或指派變更時
-                if (['edited', 'assigned', 'unassigned', 'closed', 'reopened'].includes(context.payload.action)) {
+                  // 新建 issue 時直接創建
+                  await createIssue(owner, repo, title, sourceIssue, assignee);
+                } else if (['edited', 'assigned', 'unassigned', 'closed', 'reopened'].includes(context.payload.action)) {
+                  // 更新 issue 時先查找對應的 issue
                   const searchQuery = `repo:${owner}/${repo} "Original Issue: ${sourceIssue.html_url}"`;
                   const searchResult = await github.rest.search.issuesAndPullRequests({
                     q: searchQuery
                   });
-
+            
                   if (searchResult.data.items.length > 0) {
                     const targetIssue = searchResult.data.items[0];
-                    await github.rest.issues.update({
-                      owner,
-                      repo,
-                      issue_number: targetIssue.number,
-                      title: title, // 更新後標題仍保持前綴
-                      body: bodyTemplate(sourceIssue.html_url, sourceIssue.body, repoName, assignee)
-                    });
-                    console.log(`Successfully updated sync issue in ${repoName}`);
+                    await updateIssue(owner, repo, targetIssue.number, title, sourceIssue, assignee);
                   }
                 }
               }
             } catch (error) {
               console.error('Error:', error);
               core.setFailed(error.message);
+            }
+            
+            // 創建 Issue 的函數
+            async function createIssue(owner, repo, title, sourceIssue, assignee) {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body: bodyTemplate(sourceIssue.html_url, sourceIssue.body, `${owner}/${repo}`, assignee),
+                labels: sourceIssue.labels.map(label => label.name)
+              });
+              console.log(`Successfully created sync issue in ${owner}/${repo}`);
+            }
+            
+            // 更新 Issue 的函數
+            async function updateIssue(owner, repo, issueNumber, title, sourceIssue, assignee) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                title, // 更新後標題仍保持前綴
+                body: bodyTemplate(sourceIssue.html_url, sourceIssue.body, `${owner}/${repo}`, assignee)
+              });
+              console.log(`Successfully updated sync issue in ${owner}/${repo}`);
             }
