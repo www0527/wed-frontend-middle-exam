@@ -1,6 +1,5 @@
 name: Sync Issues
 
-# 觸發條件設定
 on:
   issues:
     types: [opened, edited, closed, reopened, assigned, unassigned]
@@ -15,23 +14,21 @@ jobs:
       - name: Sync issue
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.SYNC_TOKEN }}
+          : ${{ secrets.SYNC_TOKEN }}
           script: |
             const sourceIssue = context.payload.issue;
 
-            // 目標倉庫配置
-            const targetRepository = [
-              { 
-                // 同步所有操作，不加標題前綴
+            // Define target repo configurations
+            const targetRepos = [
+              {
                 owner: 'www0527',
                 repo: 'Redux-learning',
                 syncActions: ['opened', 'edited', 'closed', 'reopened', 'comment', 'assigned', 'unassigned'],
-                excludedLabels: ['P0', 'Acceptance'],
-                prependTitle: false
+                excludedLabels: ['Code Review', 'Acceptance'],
+                prependTitle: false // 不需要在標題前加前綴
               }
             ];
-            
-            // issue 的內容模板
+
             const bodyTemplate = (htmlUrl, sourceBody, repoName, assignee) => `
             Original Issue: ${htmlUrl}
             Developer: ${assignee ? `@${assignee}` : ''}
@@ -44,9 +41,8 @@ jobs:
 
             *Synced from ${context.repo.owner}/${context.repo.repo} to ${repoName}*`;
 
-            //  同步邏輯
             try {
-              for (const { owner, repo, syncActions, excludedLabels = [], prependTitle } of targetRepository) {
+              for (const { owner, repo, syncActions, excludedLabels = [], prependTitle } of targetRepos) {
                 const repoName = `${owner}/${repo}`;
 
                 // 檢查動作是否允許
