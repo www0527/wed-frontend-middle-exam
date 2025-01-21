@@ -1,22 +1,111 @@
-name: My First Workflow
+name: Sync Issues
 
+# 觸發條件設定
 on:
-  # 當有 PR 時觸發
-  pull_request:
-    types: [opened, reopened]
+  issues:
+    types: [opened, edited, closed, reopened, assigned, unassigned]
+  issue_comment:
+    types: [created, edited, deleted]
 
 jobs:
-  first-job:
+  sync-issues:
     runs-on: ubuntu-latest
+
     steps:
-      # 在 PR 中添加一個歡迎訊息
-      - name: Add PR Comment
-        uses: actions/github-script@v6
+      - name: Sync issue
+        uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.SYNC_TOKEN }}
           script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: '👋 感謝提交 PR！這是一個自動回覆訊息。'
-            });
+            const sourceIssue = context.payload.issue;
+
+            // 目標倉庫配置
+            const targetRepository = [
+              { 
+                // 同步所有操作，不加標題前綴
+                owner: 'www0527',
+                repo: 'Redux-learning',
+                syncActions: ['opened', 'edited', 'closed', 'reopened', 'comment', 'assigned', 'unassigned'],
+                excludedLabels: ['P0', 'Acceptance'],
+                prependTitle: false
+              }
+            ];
+            
+            // issue 的內容模板
+            const bodyTemplate = (htmlUrl, sourceBody, repoName, assignee) => `
+            Original Issue: ${htmlUrl}    //原始 issue 連結
+            Developer: ${assignee ? `@${assignee}` : ''}    //如果有 Assign 的話，在文內標註該人員
+
+            ---
+
+            ${sourceBody || ''}   //原始內容
+
+            ---
+
+            *Synced from ${context.repo.owner}/${context.repo.repo} to ${repoName}*`;    // 同步訊息註記
+
+            //  同步邏輯
+            try {
+              for (const { owner, repo, syncActions, excludedLabels = [], prependTitle } of targetRepository) {
+                const repoName = `${owner}/${repo}`;
+
+                // 檢查動作是否允許
+                if (!syncActions.includes(context.payload.action)) {
+                  console.log(`Action "${context.payload.action}" not allowed for ${repoName}`);
+                  continue;
+                }
+
+                // 檢查是否有排除的標籤
+                const hasExcludedLabel = excludedLabels.length > 0 &&
+                  sourceIssue.labels.some(label => excludedLabels.includes(label.name));
+                if (hasExcludedLabel) {
+                  console.log(`Skipping sync for issue with excluded label in ${repoName}`);
+                  continue;
+                }
+
+                // 獲取當前指派的開發者資訊
+                const assignee = sourceIssue.assignees.length > 0
+                  ? sourceIssue.assignees.map(user => user.login).join(', ')
+                  : null;
+
+                // 構建標題（加上前綴）
+                const title = prependTitle
+                  ? `${prependTitle} ${sourceIssue.title}` // 在標題前加前綴
+                  : sourceIssue.title;
+
+                // 動作為新增 Issue 時
+                if (context.payload.action === 'opened') {
+                  await github.rest.issues.create({
+                    owner,
+                    repo,
+                    title: title,
+                    body: bodyTemplate(sourceIssue.html_url, sourceIssue.body, repoName, assignee),
+                    labels: sourceIssue.labels.map(label => label.name)
+                  });
+                  console.log(`Successfully created sync issue in ${repoName}`);
+                }
+
+                // 動作為編輯或指派變更時
+                if (context.payload.action === 'edited' || context.payload.action === 'assigned' || context.payload.action === 'unassigned') {
+                  const searchQuery = `repo:${owner}/${repo} "Original Issue: ${sourceIssue.html_url}"`;
+                  const searchResult = await github.rest.search.issuesAndPullRequests({
+                    q: searchQuery
+                  });
+
+                  if (searchResult.data.items.length > 0) {
+                    const targetIssue = searchResult.data.items[0];
+                    await github.rest.issues.update({
+                      owner,
+                      repo,
+                      issue_number: targetIssue.number,
+                      title: title, // 更新後標題仍保持前綴
+                      body: bodyTemplate(sourceIssue.html_url, sourceIssue.body, repoName, assignee)
+                    });
+                    console.log(`Successfully updated sync issue in ${repoName}`);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              core.setFailed(error.message);
+            }
