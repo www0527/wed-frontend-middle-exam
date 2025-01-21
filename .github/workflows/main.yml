@@ -1,10 +1,10 @@
 name: Sync Issues
 
 on:
-  issues:
-    types: [opened, edited, closed, reopened, assigned, unassigned]
-  issue_comment:
-    types: [created, edited, deleted]
+    issues:
+        types: [opened, edited, closed, reopened, assigned, unassigned]
+    issue_comment:
+        types: [created, edited, deleted]
 
 permissions:
   contents: read
@@ -50,16 +50,16 @@ jobs:
               // 構建 issue 內容
               const title = sourceIssue.title;
               const body = `
-                Original Issue: ${sourceIssue.html_url}
-                Developer: ${sourceIssue.assignee ? `@${sourceIssue.assignee.login}` : ''}
+              Original Issue: ${sourceIssue.html_url}
+              Developer: ${sourceIssue.assignee ? `@${sourceIssue.assignee.login}` : ''}
 
-                ---
+              ---
 
-                ${sourceIssue.body || ''}
+              ${sourceIssue.body || ''}
 
-                ---
+              ---
 
-                *Synced from ${context.repo.owner}/${context.repo.repo} to ${context.repo.owner}/Redux-learning*
+              *Synced from ${context.repo.owner}/${context.repo.repo} to ${context.repo.owner}/Redux-learning*
               `;
 
               // 根據不同的動作執行不同的操作
