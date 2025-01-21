@@ -15,7 +15,7 @@ jobs:
       - name: Sync issue
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.SYNC_TOKEN }}
           script: |
             const sourceIssue = context.payload.issue;
 
@@ -33,16 +33,16 @@ jobs:
             
             // issue 的內容模板
             const bodyTemplate = (htmlUrl, sourceBody, repoName, assignee) => `
-            Original Issue: ${htmlUrl}    //原始 issue 連結
-            Developer: ${assignee ? `@${assignee}` : ''}    //如果有 Assign 的話，在文內標註該人員
+            Original Issue: ${htmlUrl}
+            Developer: ${assignee ? `@${assignee}` : ''}
 
             ---
 
-            ${sourceBody || ''}   //原始內容
+            ${sourceBody || ''}
 
             ---
 
-            *Synced from ${context.repo.owner}/${context.repo.repo} to ${repoName}*`;    // 同步訊息註記
+            *Synced from ${context.repo.owner}/${context.repo.repo} to ${repoName}*`;
 
             //  同步邏輯
             try {
