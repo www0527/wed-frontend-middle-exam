@@ -1,21 +1,18 @@
-# Todo 已經完成撰寫,但無法在GitHub上觸發。
 name: PR Analysis and Review Check
 
 on:
-    pull_request:
-        types: [opened, reopened, ready_for_review, synchronize, closed]
-    pull_request_review:
-        types: [submitted, edited, dismissed]
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize, closed]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
 
-
-        
 permissions:
-    contents: read
-    pull-requests: write
-    checks: write
+  contents: read
+  pull-requests: write
+  checks: write
 
 jobs:
-    verify-and-analyze:
+  verify-and-analyze:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -207,19 +204,19 @@ jobs:
               core.setFailed(error.message);
             }
 
-    notify-qc:
-        needs: verify-and-analyze
-        if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, '(qc)')
-        runs-on: ubuntu-latest
-        steps:
-        - name: Delay for 2 hours
-          run: sleep 5
+  notify-qc:
+    needs: verify-and-analyze
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, '(qc)')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delay for 2 hours
+        run: sleep 7200
 
-        - name: Notify QC for Acceptance
-          uses: actions/github-script@v7
-          with:
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-            script: |
+      - name: Notify QC for Acceptance
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
             const { owner, repo } = context.repo;
             const issue_number = context.payload.pull_request.number;
             const qcReviewer = 'www0527'; // 替換為實際的 QC 人員 GitHub 用戶名
@@ -232,7 +229,7 @@ jobs:
                 owner,
                 repo,
                 issue_number: issueNumber,
-                body: `@${qcReviewer} PR 已合併到 QC 分支，請進行驗收指派。`
+                body: `@${qcReviewer} PR 已合併到 main 分支，請進行驗收。`
               });
             } else {
               console.error('未找到 issue 編號');
