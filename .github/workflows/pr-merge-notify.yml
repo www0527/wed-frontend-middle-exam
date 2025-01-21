@@ -13,7 +13,7 @@ jobs:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, '(qc)')
     runs-on: ubuntu-latest
     steps:
-      - name: Delay for 2 hours
+      - name: Delay for 5 seconds
         run: sleep 5
 
       - name: Notify QC for Acceptance
