@@ -21,19 +21,12 @@ jobs:
             // Define target repo configurations
             const targetRepos = [
               {
-                owner: 'eGroupAI',
-                repo: 'infocenter-qc',
+                owner: 'www0527',
+                repo: 'Redux-learning',
                 syncActions: ['opened', 'edited', 'closed', 'reopened', 'comment', 'assigned', 'unassigned'],
                 excludedLabels: ['Code Review', 'Acceptance'],
                 prependTitle: false // 不需要在標題前加前綴
               },
-              {
-                owner: 'eGroupAI',
-                repo: 'infocenter-selenium',
-                syncActions: ['opened', 'edited'],
-                excludedLabels: ['Code Review', 'Acceptance'],
-                prependTitle: '[Selenium Test]' // 標題前固定加上前綴
-              }
             ];
 
             const bodyTemplate = (htmlUrl, sourceBody, repoName, assignee) => `
