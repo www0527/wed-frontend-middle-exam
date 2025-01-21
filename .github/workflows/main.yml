@@ -52,10 +52,10 @@ jobs:
                 repo: 'Redux-learning',
                 syncActions: ['opened', 'edited', 'closed', 'reopened', 'assigned', 'unassigned'],
                 excludedLabels: ['P0', 'Acceptance'],
-                prependTitle: false
+                prependTitle: false,
               }
             ];
-            
+
             // 構建 issue 內容
             const title = sourceIssue.title;
             const body = `
