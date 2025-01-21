@@ -1,0 +1,22 @@
+name: My First Workflow
+
+on:
+  # 當有 PR 時觸發
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  first-job:
+    runs-on: ubuntu-latest
+    steps:
+      # 在 PR 中添加一個歡迎訊息
+      - name: Add PR Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '👋 感謝提交 PR！這是一個自動回覆訊息。'
+            });
