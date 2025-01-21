@@ -92,6 +92,7 @@ jobs:
                       issue_number: targetIssue.number,
                       state: 'closed'
                     });
+                    console.log('Successfully closed issue in target repository');
                   } else if (context.payload.action === 'reopened') {
                     await github.rest.issues.update({
                       owner: context.repo.owner,
@@ -99,6 +100,7 @@ jobs:
                       issue_number: targetIssue.number,
                       state: 'open'
                     });
+                    console.log('Successfully reopened issue in target repository');
                   }
                   
                   // 更新內容和標題
