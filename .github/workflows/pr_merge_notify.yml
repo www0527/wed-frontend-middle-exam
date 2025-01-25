@@ -58,13 +58,13 @@ jobs:
               const targetIssue = searchResult.data.items[0];
               
               const originalIssueUrl = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
-              const mentions = qcUsers.map(user => `@${user}`).join(' ');
+              const mentions = notifyUsers.map(user => `@${user}`).join(' ');
               
               await github.rest.issues.createComment({
                 owner: targetRepo.owner,
                 repo: targetRepo.repo,
                 issue_number: targetIssue.number,
-                body: `${mentions}\n\n[The QC PR #${pull_number}](${context.payload.pull_request.html_url}) has been merged into the qc branch. Please proceed with the assignment of the QC verification tasks.\n\nOrigin issue: ${originalIssueUrl}
+                body: `${mentions}\n\n[The QC PR #${pull_number}](${context.payload.pull_request.html_url}) has been merged into the qc branch. Please proceed with the assignment of the QC verification tasks.\n\nOrigin issue: ${originalIssueUrl}`
               });
             } catch (error) {
               console.error('工作流執行錯誤:', error.message);
