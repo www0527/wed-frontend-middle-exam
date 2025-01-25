@@ -21,6 +21,7 @@ jobs:
             const { owner, repo } = context.repo;
             const pull_number = context.payload.pull_request.number;
             const qcReviewer = 'www0527';
+            const TARGET_REPO = 'Redux-learning';  // 替換為實際的目標倉庫
             
             try {
               const prBody = context.payload.pull_request.body;
@@ -33,31 +34,35 @@ jobs:
               
               const issueNumber = issueMatch[1];
               
-              // 獲取原始 issue 標題
+              // 獲取原始 issue
               const originalIssue = await github.rest.issues.get({
                 owner,
                 repo,
                 issue_number: parseInt(issueNumber)
               });
               
-              // 在 B Repository 中查找同名 issue
+              // 使用 issue 編號搜尋目標倉庫
               const targetIssues = await github.rest.search.issuesAndPullRequests({
-                q: `${originalIssue.data.title} in:title repo:www0527/Redux-learning`,
+                q: `${issueNumber} in:title repo:${TARGET_REPO} is:issue`,
                 per_page: 1
               });
               
               if (targetIssues.data.items.length === 0) {
-                console.error('未在目標倉庫找到匹配的 issue');
+                console.error(`未在 ${TARGET_REPO} 找到編號 ${issueNumber} 的 issue`);
                 return;
               }
               
               const targetIssue = targetIssues.data.items[0];
+              const [targetOwner, targetRepo] = TARGET_REPO.split('/');
               
               await github.rest.issues.createComment({
-                ...targetIssue.repository,
+                owner: targetOwner,
+                repo: targetRepo,
                 issue_number: targetIssue.number,
                 body: `@${qcReviewer} PR #${pull_number} 已合併到 main 分支，請進行驗收。\n\n原始 PR: ${context.payload.pull_request.html_url}`
               });
+              
+              console.log(`已在 ${TARGET_REPO}#${targetIssue.number} 發送通知`);
               
             } catch (error) {
               console.error('發送通知時出錯:', error);
