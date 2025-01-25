@@ -45,20 +45,18 @@ jobs:
                 repo,
                 issue_number: parseInt(issueNumber)
               });
-              
-              // 搜尋目標 issue
-              const { data } = await github.rest.search.issuesAndPullRequests({
-                q: `repo:${targetRepo.owner}/${targetRepo.repo} is:issue is:open in:title "${originalIssue.data.title}"`,
+
+              const searchResult = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${targetRepo.owner}/${targetRepo.repo} is:issue is:open in:title "${originalIssue.data.title.trim()}"`,
                 per_page: 1
               });
-              
-              if (data.total_count === 0) {
+
+              if (searchResult.data.total_count === 0) {
                 throw new Error(`未找到標題為 "${originalIssue.data.title}" 的 issue`);
               }
+
+              const targetIssue = searchResult.data.items[0];
               
-              const targetIssue = data.items[0];
-              
-              // 獲取原始 issue 的 URL
               const originalIssueUrl = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
               const mentions = qcUsers.map(user => `@${user}`).join(' ');
               
