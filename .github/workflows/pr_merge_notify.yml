@@ -26,14 +26,14 @@ jobs:
             const { owner, repo } = context.repo;
             const pull_number = context.payload.pull_request.number;
             const targetRepo = {
-              owner: 'www0527',
-              repo: 'Redux-learning'
+              owner: 'eGroupAI',
+              repo: 'infocenter-qc'
             };
-            const qcUsers = ['www0527', 'user2', 'user3'];
+            const notifyUsers = ['ginnypinjyunlin'];
             
             try {
               const prBody = context.payload.pull_request.body;
-              const issueMatch = prBody.match(/#(\d+)/);
+              const issueMatch = prBody.match(/(?:^|\s)#(\d+)/);
               
               if (!issueMatch) {
                 throw new Error('未在 PR 描述中找到關聯的 issue');
@@ -64,7 +64,7 @@ jobs:
                 owner: targetRepo.owner,
                 repo: targetRepo.repo,
                 issue_number: targetIssue.number,
-                body: `${mentions}\n\n[QC PR #${pull_number}](${context.payload.pull_request.html_url}) 已合併到 qc 分支，請進行驗收工作指派\n\n原始 issue: ${originalIssueUrl}`
+                body: `${mentions}\n\n[The QC PR #${pull_number}](${context.payload.pull_request.html_url}) has been merged into the qc branch. Please proceed with the assignment of the QC verification tasks.\n\nOrigin issue: ${originalIssueUrl}
               });
             } catch (error) {
               console.error('工作流執行錯誤:', error.message);
