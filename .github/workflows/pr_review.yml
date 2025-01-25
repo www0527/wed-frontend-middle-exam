@@ -1,75 +1,194 @@
-name: PR Merge Notify
+name: PR Analysis and Review Check
 
 on:
   pull_request:
-    types: [closed]
+    types: [opened, reopened, ready_for_review, synchronize, closed]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
 
 permissions:
   contents: read
-  issues: write
+  pull-requests: write
+  checks: write
 
 jobs:
-  notify-qc:
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, '(qc)')
+  verify-and-analyze:
     runs-on: ubuntu-latest
     steps:
-      - name: Notify QC for Acceptance
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Copilot Review Status
+        id: check-review
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.SYNC_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
             const pull_number = context.payload.pull_request.number;
-            const qcReviewer = 'www0527';
-            const targetRepo = {
-              owner: 'www0527',    // 替換為 B Repository 的所有者
-              repo: 'Redux-learning'       // 替換為 B Repository 的名稱
-            };
-            
-            try {
-              // 從 PR 描述中獲取 issue 編號
-              const prBody = context.payload.pull_request.body;
-              const issueMatch = prBody.match(/#(\d+)/);
-              
-              if (!issueMatch) {
-                throw new Error('未在 PR 描述中找到關聯的 issue');
+            async function updateCheckRun(conclusion, output) {
+              try {
+                await github.rest.checks.create({
+                  owner,
+                  repo,
+                  name: 'Copilot Review Required Check',
+                  head_sha: context.payload.pull_request.head.sha,
+                  status: 'completed',
+                  conclusion,
+                  output: {
+                    title: output.title,
+                    summary: output.summary,
+                    text: output.text || ''
+                  }
+                });
+              } catch (error) {
+                console.error('Error updating check run:', error);
               }
-              
-              const issueNumber = issueMatch[1];
-              
-              // 獲取 A Repository 的 issue 資訊
-              const originalIssue = await github.rest.issues.get({
+            }
+            try {
+              const { data: reviews } = await github.rest.pulls.listReviews({
                 owner,
                 repo,
-                issue_number: parseInt(issueNumber)
+                pull_number,
               });
               
-              // 獲取 B Repository 所有打開的 issues
-              const allIssues = await github.paginate(github.rest.issues.listForRepo, {
-                ...targetRepo,
-                state: 'open',
+              const copilotReview = reviews.find(review => 
+                review.user?.login === 'copilot' &&
+                ['APPROVED', 'CHANGES_REQUESTED'].includes(review.state)
+              );
+              
+              const checkOutput = {
+                title: 'Copilot Review Status',
+                summary: copilotReview
+                  ? `✅ Copilot review completed (${copilotReview.state === 'APPROVED' ? 'Approved' : 'Changes requested'})`
+                  : '⚠️ Waiting for Copilot review',
+                text: 'Copilot review is required before merging this Pull Request.'
+              };
+              
+              await updateCheckRun(
+                copilotReview ? 'success' : 'pending',
+                checkOutput
+              );
+              const message = [
+                '### Copilot Review Status',
+                checkOutput.summary,
+                '',
+                '> Note: Please ensure Copilot review is obtained before merging.',
+                '',
+                `Last checked: ${new Date().toLocaleString()}`
+              ].join('\n');
+              const { data: comments } = await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: pull_number,
                 per_page: 100
               });
               
-              // 查找標題完全匹配的 issue
-              const targetIssue = allIssues.find(issue => 
-                issue.title.trim() === originalIssue.data.title.trim()
+              const statusComment = comments.find(comment => 
+                comment.body?.includes('Copilot Review Status')
               );
               
-              if (!targetIssue) {
-                throw new Error('未在目標倉庫找到標題完全匹配的 issue');
+              if (statusComment) {
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: statusComment.id,
+                  body: message
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: pull_number,
+                  body: message
+                });
               }
               
-              // 發送通知
-              await github.rest.issues.createComment({
-                ...targetRepo,
-                issue_number: targetIssue.number,
-                body: `@${qcReviewer} PR #${pull_number} 已合併到 main 分支，請進行驗收。\n\n原始 PR: ${context.payload.pull_request.html_url}`
+            } catch (error) {
+              console.error('Error checking review status:', error);
+              
+              await updateCheckRun('neutral', {
+                title: 'Copilot Review Check Failed',
+                summary: 'Unable to verify Copilot review status',
+                text: `Error occurred: ${error.message}\nPlease retry or contact support.`
+              });
+            }
+      - name: Analyze Changes and Generate Report
+        id: analysis
+        run: |
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          STATS=$(git diff --stat ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          echo "changed_files<<EOF" >> $GITHUB_ENV
+          echo "$CHANGED_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "stats<<EOF" >> $GITHUB_ENV
+          echo "$STATS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - name: Publish Analysis Report
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const changedFiles = process.env.changed_files.split('\n').filter(Boolean);
+            const stats = process.env.stats;
+            const fileTypes = {};
+            changedFiles.forEach(file => {
+              const ext = file.split('.').pop() || 'other';
+              fileTypes[ext] = (fileTypes[ext] || 0) + 1;
+            });
+            const report = [
+              '## PR Analysis Report 📊',
+              '',
+              '### Change Overview',
+              '```',
+              stats,
+              '```',
+              '',
+              '### File Type Statistics',
+              ...Object.entries(fileTypes).map(([type, count]) => 
+                `- ${type}: ${count} file(s)`
+              ),
+              '',
+              '### Changed Files',
+              ...changedFiles.map(file => `- \`${file}\``),
+              '',
+              '### Review Requirements',
+              '- 🤖 Copilot review required before merging',
+              '- 📝 Review suggestions will appear in Files changed tab',
+              '- 💡 Additional insights available in Copilot tab',
+              '',
+              '> Note: This report will automatically update when new changes are pushed.'
+            ].join('\n');
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                per_page: 100
               });
               
-              console.log(`通知已發送到 issue: ${targetIssue.html_url}`);
+              const botComment = comments.find(comment => 
+                comment.body.includes('PR Analysis Report')
+              );
               
+              if (botComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: botComment.id,
+                  body: report
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: report
+                });
+              }
             } catch (error) {
-              console.error('工作流執行錯誤:', error.message);
-              throw error;
+              console.error('Error publishing report:', error);
+              core.setFailed(error.message);
             }
