@@ -29,7 +29,7 @@ jobs:
               owner: 'www0527',
               repo: 'Redux-learning'
             };
-            const qcReviewer = 'www0527';
+            const qcUsers = ['www0527', 'user2', 'user3']; // 修改為要通知的用戶列表
             
             try {
               const prBody = context.payload.pull_request.body;
@@ -67,7 +67,7 @@ jobs:
                 owner: targetRepo.owner,
                 repo: targetRepo.repo,
                 issue_number: targetIssue.number,
-                body: `PR [#${pull_number}](${context.payload.pull_request.html_url}) 已合併到 qc 分支，請進行驗收工作指派\n\n原始 issue: ${originalIssueUrl}`
+                body: `${mentions}\n\n[QC PR #${pull_number}](${context.payload.pull_request.html_url}) 已合併到 qc 分支，請進行驗收工作指派\n\n原始 issue: ${originalIssueUrl}`
               });
             } catch (error) {
               console.error('工作流執行錯誤:', error.message);
