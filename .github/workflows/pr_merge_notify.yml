@@ -26,8 +26,8 @@ jobs:
             const { owner, repo } = context.repo;
             const pull_number = context.payload.pull_request.number;
             const targetRepo = {
-              owner: 'eGroupAI',
-              repo: 'infocenter-qc'
+              owner: 'www0527',
+              repo: 'Redux-learning'
             };
             const notifyUsers = ['ginnypinjyunlin'];
             
