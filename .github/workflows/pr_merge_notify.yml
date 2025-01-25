@@ -1,5 +1,4 @@
 name: PR Merge Notify
-
 on:
   pull_request:
     types: [closed]
@@ -10,11 +9,9 @@ permissions:
 
 jobs:
   notify-qc:
-    # 明確檢查是否為 merged 狀態
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, '(qc)') && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    # 添加併發控制
-    concurrency: 
+    concurrency:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
@@ -32,7 +29,7 @@ jobs:
               owner: 'www0527',
               repo: 'Redux-learning'
             };
-            const qcUsers = ['www0527', 'user2', 'user3']; // 修改為要通知的用戶列表
+            const qcUsers = ['www0527', 'user2', 'user3'];
             
             try {
               const prBody = context.payload.pull_request.body;
@@ -48,26 +45,18 @@ jobs:
                 repo,
                 issue_number: parseInt(issueNumber)
               });
-              
-              const searchIssue = async (github, targetRepo, originalTitle) => {
-                try {
-                  const { data } = await github.rest.search.issuesAndPullRequests({
-                    q: `repo:${targetRepo.owner}/${targetRepo.repo} is:issue is:open in:title "${originalTitle}"`,
-                    per_page: 1
-                  });
 
-                  if (data.total_count === 0) {
-                    throw new Error(`未找到標題為 "${originalTitle}" 的 issue`);
-                  }
+              const searchResult = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${targetRepo.owner}/${targetRepo.repo} is:issue is:open in:title "${originalIssue.data.title.trim()}"`,
+                per_page: 1
+              });
 
-                  return data.items[0];
-                } catch (error) {
-                  console.error('搜尋 issue 失敗:', error);
-                  throw error;
-                }
-              };
+              if (searchResult.data.total_count === 0) {
+                throw new Error(`未找到標題為 "${originalIssue.data.title}" 的 issue`);
+              }
+
+              const targetIssue = searchResult.data.items[0];
               
-              // 獲取原始 issue 的 URL
               const originalIssueUrl = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
               const mentions = qcUsers.map(user => `@${user}`).join(' ');
               
