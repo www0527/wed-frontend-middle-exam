@@ -24,28 +24,29 @@ jobs:
             const { owner, repo } = context.repo;
             const pull_number = context.payload.pull_request.number;
             const qcReviewer = 'www0527';
+            const targetRepo = 'Redux-learning'; // 設置目標倉庫名稱
             
             try {
-              // 從 PR body 中提取原始 issue URL
+              // 從 PR body 中提取 issue 編號
               const prBody = context.payload.pull_request.body;
-              const issueUrlMatch = prBody.match(/(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+([^/]+)\/([^#]+)#(\d+)/i);
+              const issueMatch = prBody.match(/#(\d+)/);
               
-              if (!issueUrlMatch) {
-                console.error('未在 PR 描述中找到關聯的 issue');
+              if (!issueMatch) {
+                console.error('未在 PR 描述中找到關聯的 issue 編號');
                 return;
               }
               
-              const [, targetOwner, targetRepo, issueNumber] = issueUrlMatch;
+              const issueNumber = parseInt(issueMatch[1]);
               
               // 在目標倉庫的 issue 中添加評論
               await github.rest.issues.createComment({
-                owner: targetOwner,
+                owner,
                 repo: targetRepo,
-                issue_number: parseInt(issueNumber),
-                body: `@${qcReviewer} PR #${pull_number} 已合併到 main 分支，請進行驗收。\n\n原始 PR: ${context.payload.pull_request.html_url}`
+                issue_number: issueNumber,
+                body: `@${qcReviewer} PR #${pull_number} 已合併到 pc 分支，請進行驗收。\n\n原始 PR: ${context.payload.pull_request.html_url}`
               });
               
-              console.log(`已在 ${targetOwner}/${targetRepo}#${issueNumber} 發送通知`);
+              console.log(`已在 ${owner}/${targetRepo}#${issueNumber} 發送通知`);
               
             } catch (error) {
               console.error('發送通知時出錯:', error);
