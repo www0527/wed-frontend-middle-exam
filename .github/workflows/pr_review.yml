@@ -42,7 +42,7 @@ jobs:
               
               // 在 B Repository 中查找同名 issue
               const targetIssues = await github.rest.search.issuesAndPullRequests({
-                q: `${originalIssue.data.title} in:title repo:target-owner/target-repo`,
+                q: `${originalIssue.data.title} in:title repo:www0527/Redux-learning`,
                 per_page: 1
               });
               
