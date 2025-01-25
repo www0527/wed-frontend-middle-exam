@@ -13,7 +13,7 @@ jobs:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, '(qc)')
     runs-on: ubuntu-latest
     steps:
-      - name: Delay for 2 hours
+      - name: Delay for 5 seconds
         run: sleep 5
 
       - name: Notify QC for Acceptance
@@ -23,18 +23,30 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const pull_number = context.payload.pull_request.number;
-            const qcReviewer = 'www0527'; // 替換為實際的 QC 人員 GitHub 用戶名
+            const qcReviewer = 'www0527';
             
-            // 提取 issue 編號
-            const issueMatch = context.payload.pull_request.title.match(/\(qc\)issue\/(\d+)/i);
-            if (issueMatch) {
-              const issueNumber = issueMatch[1];
+            try {
+              // 從 PR body 中提取原始 issue URL
+              const prBody = context.payload.pull_request.body;
+              const issueUrlMatch = prBody.match(/(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+([^/]+)\/([^#]+)#(\d+)/i);
+              
+              if (!issueUrlMatch) {
+                console.error('未在 PR 描述中找到關聯的 issue');
+                return;
+              }
+              
+              const [, targetOwner, targetRepo, issueNumber] = issueUrlMatch;
+              
+              // 在目標倉庫的 issue 中添加評論
               await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: issueNumber,
-                body: `@${qcReviewer} PR 已合併到 main 分支，請進行驗收。`
+                owner: targetOwner,
+                repo: targetRepo,
+                issue_number: parseInt(issueNumber),
+                body: `@${qcReviewer} PR #${pull_number} 已合併到 main 分支，請進行驗收。\n\n原始 PR: ${context.payload.pull_request.html_url}`
               });
-            } else {
-              console.error('未找到 issue 編號');
+              
+              console.log(`已在 ${targetOwner}/${targetRepo}#${issueNumber} 發送通知`);
+              
+            } catch (error) {
+              console.error('發送通知時出錯:', error);
             }
