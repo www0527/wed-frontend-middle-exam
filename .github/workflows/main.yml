@@ -80,7 +80,24 @@ jobs:
                   });
                   console.log(`Successfully created sync issue in ${repoName}`);
                 }
+                // 動作為關閉時
+                if (context.payload.action === 'closed') {
+                  const searchQuery = `repo:${owner}/${repo} is:issue "Original Issue: ${sourceIssue.html_url}"`;
+                  const searchResult = await github.rest.search.issuesAndPullRequests({
+                    q: searchQuery
+                  });
 
+                  if (searchResult.data.items.length > 0) {
+                    const targetIssue = searchResult.data.items[0];
+                    await github.rest.issues.update({
+                      owner,
+                      repo,
+                      issue_number: targetIssue.number,
+                      state: 'closed'
+                    });
+                    console.log(`Successfully closed sync issue in ${repoName}`);
+                  }
+                }
                 // 動作為編輯或指派變更時
                 if (context.payload.action === 'edited' || context.payload.action === 'assigned' || context.payload.action === 'unassigned') {
                   const searchQuery = `repo:${owner}/${repo} is:issue "Original Issue: ${sourceIssue.html_url}"`;
