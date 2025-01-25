@@ -67,7 +67,7 @@ jobs:
                 owner: targetRepo.owner,
                 repo: targetRepo.repo,
                 issue_number: targetIssue.number,
-                body: `issue [#${pull_number}](${context.payload.pull_request.html_url}) 已合併到 qc 分支，請進行驗收工作指派\n\n原始 issue: ${originalIssueUrl}`
+                body: `PR [#${pull_number}](${context.payload.pull_request.html_url}) 已合併到 qc 分支，請進行驗收工作指派\n\n原始 issue: ${originalIssueUrl}`
               });
             } catch (error) {
               console.error('工作流執行錯誤:', error.message);
