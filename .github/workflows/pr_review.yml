@@ -21,49 +21,55 @@ jobs:
             const { owner, repo } = context.repo;
             const pull_number = context.payload.pull_request.number;
             const qcReviewer = 'www0527';
-            const TARGET_REPO = 'Redux-learning';  // 替換為實際的目標倉庫
+            const targetRepo = {
+              owner: 'www0527',    // 替換為 B Repository 的所有者
+              repo: 'Redux-learning'       // 替換為 B Repository 的名稱
+            };
             
             try {
+              // 從 PR 描述中獲取 issue 編號
               const prBody = context.payload.pull_request.body;
               const issueMatch = prBody.match(/#(\d+)/);
               
               if (!issueMatch) {
-                console.error('未在 PR 描述中找到關聯的 issue');
-                return;
+                throw new Error('未在 PR 描述中找到關聯的 issue');
               }
               
               const issueNumber = issueMatch[1];
               
-              // 獲取原始 issue
+              // 獲取 A Repository 的 issue 資訊
               const originalIssue = await github.rest.issues.get({
                 owner,
                 repo,
                 issue_number: parseInt(issueNumber)
               });
               
-              // 使用 issue 編號搜尋目標倉庫
-              const targetIssues = await github.rest.search.issuesAndPullRequests({
-                q: `${issueNumber} in:title repo:${TARGET_REPO} is:issue`,
-                per_page: 1
+              // 獲取 B Repository 所有打開的 issues
+              const allIssues = await github.paginate(github.rest.issues.listForRepo, {
+                ...targetRepo,
+                state: 'open',
+                per_page: 100
               });
               
-              if (targetIssues.data.items.length === 0) {
-                console.error(`未在 ${TARGET_REPO} 找到編號 ${issueNumber} 的 issue`);
-                return;
+              // 查找標題完全匹配的 issue
+              const targetIssue = allIssues.find(issue => 
+                issue.title.trim() === originalIssue.data.title.trim()
+              );
+              
+              if (!targetIssue) {
+                throw new Error('未在目標倉庫找到標題完全匹配的 issue');
               }
               
-              const targetIssue = targetIssues.data.items[0];
-              const [targetOwner, targetRepo] = TARGET_REPO.split('/');
-              
+              // 發送通知
               await github.rest.issues.createComment({
-                owner: targetOwner,
-                repo: targetRepo,
+                ...targetRepo,
                 issue_number: targetIssue.number,
                 body: `@${qcReviewer} PR #${pull_number} 已合併到 main 分支，請進行驗收。\n\n原始 PR: ${context.payload.pull_request.html_url}`
               });
               
-              console.log(`已在 ${TARGET_REPO}#${targetIssue.number} 發送通知`);
+              console.log(`通知已發送到 issue: ${targetIssue.html_url}`);
               
             } catch (error) {
-              console.error('發送通知時出錯:', error);
+              console.error('工作流執行錯誤:', error.message);
+              throw error;
             }
