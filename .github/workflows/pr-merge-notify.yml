@@ -13,8 +13,13 @@ jobs:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, '(qc)')
     runs-on: ubuntu-latest
     steps:
-      - name: Delay for 5 seconds
-        run: sleep 5
+      - name: Echo Context
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('PR Title:', context.payload.pull_request.title);
+            console.log('PR Body:', context.payload.pull_request.body);
+            console.log('Repository:', context.repo);
 
       - name: Notify QC for Acceptance
         uses: actions/github-script@v7
@@ -23,31 +28,57 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const pull_number = context.payload.pull_request.number;
+            const targetRepo = {
+              owner: 'www0527',           // B Repository owner
+              repo: 'Redux-learning'       // B Repository name
+            };
             const qcReviewer = 'www0527';
-            const targetRepo = 'Redux-learning'; // 設置目標倉庫名稱
             
             try {
-              // 從 PR body 中提取 issue 編號
+              // 從 PR 描述中獲取 issue 編號
               const prBody = context.payload.pull_request.body;
               const issueMatch = prBody.match(/#(\d+)/);
               
               if (!issueMatch) {
-                console.error('未在 PR 描述中找到關聯的 issue 編號');
-                return;
+                throw new Error('未在 PR 描述中找到關聯的 issue');
               }
               
-              const issueNumber = parseInt(issueMatch[1]);
+              const issueNumber = issueMatch[1];
               
-              // 在目標倉庫的 issue 中添加評論
-              await github.rest.issues.createComment({
+              // 獲取 A Repository 的 issue 資訊
+              const originalIssue = await github.rest.issues.get({
                 owner,
-                repo: targetRepo,
-                issue_number: issueNumber,
-                body: `@${qcReviewer} PR #${pull_number} 已合併到 pc 分支，請進行驗收。\n\n原始 PR: ${context.payload.pull_request.html_url}`
+                repo,
+                issue_number: parseInt(issueNumber)
               });
               
-              console.log(`已在 ${owner}/${targetRepo}#${issueNumber} 發送通知`);
+              // 獲取 B Repository 所有打開的 issues
+              const { data: targetIssues } = await github.rest.issues.listForRepo({
+                ...targetRepo,
+                state: 'open',
+                per_page: 100
+              });
+              
+              // 查找標題完全匹配的 issue
+              const targetIssue = targetIssues.find(issue => 
+                issue.title.trim() === originalIssue.data.title.trim()
+              );
+              
+              if (!targetIssue) {
+                throw new Error(`未找到標題為 "${originalIssue.data.title}" 的 issue`);
+              }
+              
+              // 發送通知
+              await github.rest.issues.createComment({
+                owner: targetRepo.owner,
+                repo: targetRepo.repo,
+                issue_number: targetIssue.number,
+                body: `@${qcReviewer} PR #${pull_number} 已合併到 main 分支，請進行驗收。\n\n原始 PR: ${context.payload.pull_request.html_url}`
+              });
+              
+              console.log('通知已發送到:', targetIssue.html_url);
               
             } catch (error) {
-              console.error('發送通知時出錯:', error);
+              console.error('工作流執行錯誤:', error.message);
+              throw error;
             }
