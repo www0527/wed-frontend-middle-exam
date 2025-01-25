@@ -49,19 +49,23 @@ jobs:
                 issue_number: parseInt(issueNumber)
               });
               
-              const { data: targetIssues } = await github.rest.issues.listForRepo({
-                ...targetRepo,
-                state: 'open',
-                per_page: 100
-              });
-              
-              const targetIssue = targetIssues.find(issue => 
-                issue.title.trim() === originalIssue.data.title.trim()
-              );
-              
-              if (!targetIssue) {
-                throw new Error(`未找到標題為 "${originalIssue.data.title}" 的 issue`);
-              }
+              const searchIssue = async (github, targetRepo, originalTitle) => {
+                try {
+                  const { data } = await github.rest.search.issuesAndPullRequests({
+                    q: `repo:${targetRepo.owner}/${targetRepo.repo} is:issue is:open in:title "${originalTitle}"`,
+                    per_page: 1
+                  });
+
+                  if (data.total_count === 0) {
+                    throw new Error(`未找到標題為 "${originalTitle}" 的 issue`);
+                  }
+
+                  return data.items[0];
+                } catch (error) {
+                  console.error('搜尋 issue 失敗:', error);
+                  throw error;
+                }
+              };
               
               // 獲取原始 issue 的 URL
               const originalIssueUrl = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
