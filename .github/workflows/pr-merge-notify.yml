@@ -62,6 +62,7 @@ jobs:
               
               // 獲取原始 issue 的 URL
               const originalIssueUrl = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
+              const mentions = qcUsers.map(user => `@${user}`).join(' ');
               
               await github.rest.issues.createComment({
                 owner: targetRepo.owner,
